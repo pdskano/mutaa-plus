@@ -301,7 +301,20 @@
 
             setTimeout(() => {
                 if (Hls.isSupported()) {
-                    hlsPlayer = new Hls({ maxBufferLength: 30 });
+                    hlsPlayer = new Hls({ 
+                        maxBufferLength: 30,
+                        xhrSetup: function(xhr, url) {
+                            // If the URL is already going through our proxy, don't wrap it again
+                            if (url.includes('/api/proxy')) return;
+                            
+                            // For nested m3u8 playlists or TS segments that might use relative paths or original HTTP paths,
+                            // we need to ensure they also go through the proxy to avoid mixed content errors.
+                            // We can try to modify the URL before the request is made.
+                            const proxiedUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+                            xhr.open('GET', proxiedUrl, true);
+                        }
+                    });
+                    
                     hlsPlayer.loadSource(url);
                     hlsPlayer.attachMedia(video);
                     
@@ -312,6 +325,7 @@
                     
                     hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
                         if (data.fatal) {
+                            console.error('HLS Error:', data);
                             msg.textContent = "عذراً، البث متوقف مؤقتاً.";
                             spinner.classList.add('hidden');
                             hlsPlayer.destroy();
