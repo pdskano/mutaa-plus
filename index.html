@@ -1,8 +1,8 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>صلاح تي في - Salah TV</title>
     
     <link rel="manifest" href="manifest.json">
@@ -32,13 +32,14 @@ DOCTYPE html>
         ::-webkit-scrollbar-thumb:hover { background: #555; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 12px 24px; border-radius: 8px; font-weight: bold; color: white; opacity: 0; transition: opacity 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .toast.show { opacity: 1; }
         .toast.success { background-color: #10b981; }
         .toast.error { background-color: #ef4444; }
         
-        /* Remote Control Focus effect for TV boxes */
+        /* Remote Control Focus Styles */
         .tv-focusable:focus, .tv-focused {
             outline: 3px solid #e50914 !important;
             background-color: #374151 !important;
@@ -47,14 +48,38 @@ DOCTYPE html>
             z-index: 10;
         }
 
-        /* Phone layout simulation mode container */
-        .phone-mockup-mode {
-            max-width: 480px !important;
-            margin: 0 auto !important;
-            height: 100vh !important;
-            border-left: 2px solid #333;
-            border-right: 2px solid #333;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        /* وضع التلفاز: إجبار العرض جنباً إلى جنب */
+        .layout-tv #user-view {
+            flex-direction: row !important;
+        }
+        .layout-tv #player-section {
+            height: 100% !important;
+            width: calc(100% - 320px) !important;
+            flex: none !important;
+        }
+        .layout-tv #sidebar-section {
+            height: 100% !important;
+            width: 320px !important;
+            flex: none !important;
+            border-top: none !important;
+            border-left: 1px solid #1f2937 !important;
+        }
+
+        /* وضع الهاتف: إجبار العرض الرأسي */
+        .layout-phone #user-view {
+            flex-direction: column !important;
+        }
+        .layout-phone #player-section {
+            height: 45vh !important;
+            width: 100% !important;
+            flex: none !important;
+        }
+        .layout-phone #sidebar-section {
+            height: 55vh !important;
+            width: 100% !important;
+            flex: none !important;
+            border-top: 1px solid #1f2937 !important;
+            border-left: none !important;
         }
     </style>
 </head>
@@ -68,9 +93,9 @@ DOCTYPE html>
             <h1 class="text-2xl font-black tracking-wider"><span class="text-primary">صلاح</span> تي في</h1>
         </div>
         <div class="flex items-center gap-2">
-            <!-- Screen Mode Switcher Icon -->
-            <button onclick="toggleScreenLayoutMode()" class="px-3 py-2 bg-gray-800 text-yellow-400 rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable" id="btn-layout-mode" title="تغيير وضع العرض (هاتف / شاشة كبيرة)">
-                <i class="fas fa-mobile-alt text-lg" id="layout-icon"></i>
+            <button onclick="toggleScreenLayoutMode()" class="px-3 py-2 bg-gray-800 text-yellow-400 rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable flex items-center gap-1" id="btn-layout-mode" title="تبديل وضع العرض">
+                <i class="fas fa-tv text-lg" id="layout-icon"></i>
+                <span class="text-xs hidden sm:inline" id="layout-text">وضع التلفاز</span>
             </button>
             <button onclick="switchView('user')" class="px-4 py-2 bg-gray-800 text-white rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable" id="btn-user-view">
                 <i class="fas fa-tv mr-1"></i> <span class="hidden md:inline">المشاهدة</span>
@@ -85,7 +110,8 @@ DOCTYPE html>
         
         <main id="user-view" class="flex-1 flex flex-col lg:flex-row w-full fade-in overflow-hidden" style="display: flex;">
             
-            <div class="flex-1 flex flex-col relative bg-black h-[50vh] lg:h-full flex-shrink-0 lg:flex-shrink">
+            <!-- Video Player Section -->
+            <div id="player-section" class="flex-1 flex flex-col relative bg-black h-[45vh] lg:h-full flex-shrink-0 lg:flex-shrink transition-all duration-300">
                 <div class="absolute top-4 right-4 z-10 bg-black bg-opacity-60 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> مباشر
                 </div>
@@ -107,10 +133,10 @@ DOCTYPE html>
                 </div>
             </div>
 
-            <div class="w-full lg:w-96 bg-dark-panel border-r border-gray-800 flex flex-col h-[50vh] lg:h-full flex-shrink-0">
+            <!-- Channels List Section -->
+            <div id="sidebar-section" class="w-full lg:w-96 bg-dark-panel border-r border-gray-800 flex flex-col h-[55vh] lg:h-full flex-shrink-0 transition-all duration-300">
                 <div class="p-4 border-b border-gray-800 bg-gray-900 z-10 flex-shrink-0">
                     <div class="relative">
-                        <label for="channel-search" class="sr-only">ابحث عن قناة</label>
                         <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="ابحث عن قناة..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors tv-focusable">
                         <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                     </div>
@@ -163,7 +189,7 @@ DOCTYPE html>
         let currentHost = '';
         let currentUser = '';
         let currentPass = '';
-        let isPhoneMode = false;
+        let isForcedTvMode = false;
 
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -180,18 +206,38 @@ DOCTYPE html>
         }
 
         function toggleScreenLayoutMode() {
-            isPhoneMode = !isPhoneMode;
             const wrapper = document.getElementById('app-wrapper');
             const icon = document.getElementById('layout-icon');
+            const text = document.getElementById('layout-text');
             
-            if (isPhoneMode) {
-                wrapper.classList.add('phone-mockup-mode');
-                icon.className = "fas fa-tv text-lg";
-                showNotification("تم تفعيل وضع شاشة الهاتف", "success");
-            } else {
-                wrapper.classList.remove('phone-mockup-mode');
+            isForcedTvMode = !isForcedTvMode;
+            
+            if (isForcedTvMode) {
+                wrapper.classList.remove('layout-phone');
+                wrapper.classList.add('layout-tv');
                 icon.className = "fas fa-mobile-alt text-lg";
-                showNotification("تم تفعيل وضع الشاشات الكبيرة والتلفزيون", "success");
+                text.textContent = "وضع الهاتف";
+                showNotification("تم تفعيل وضع التلفاز (جنباً إلى جنب)", "success");
+                
+                // محاولة إجبار الشاشة على الدوران العرضي في الهواتف
+                try {
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(e => console.log("Orientation lock not supported", e));
+                    }
+                } catch (e) {}
+            } else {
+                wrapper.classList.remove('layout-tv');
+                wrapper.classList.add('layout-phone');
+                icon.className = "fas fa-tv text-lg";
+                text.textContent = "وضع التلفاز";
+                showNotification("تم تفعيل وضع الهاتف (رأسي)", "success");
+                
+                // إلغاء إجبار الشاشة
+                try {
+                    if (screen.orientation && screen.orientation.unlock) {
+                        screen.orientation.unlock();
+                    }
+                } catch (e) {}
             }
         }
 
@@ -248,7 +294,7 @@ DOCTYPE html>
                 }
             } catch (err) {
                 console.error("Fetch error:", err);
-                showNotification("حدث خطأ أثناء محاولة الاتصال.", "error");
+                showNotification("حدث خطأ أثناء الاتصال.", "error");
             } finally {
                 btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> جلب القنوات الآن';
             }
@@ -271,9 +317,10 @@ DOCTYPE html>
             const list = document.getElementById('channels-list');
             list.innerHTML = ''; 
 
-            document.getElementById('channel-count').textContent = `${dataToRender.length} قناة`;
+            const channelCountEl = document.getElementById('channel-count');
+            if (channelCountEl) channelCountEl.textContent = `${dataToRender.length} قناة`;
 
-            if (dataToRender.length === 0) {
+            if (!dataToRender || dataToRender.length === 0) {
                 list.innerHTML = `
                     <div class="text-center text-gray-500 py-10" id="empty-state">
                         <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
@@ -312,13 +359,6 @@ DOCTYPE html>
                 `;
                 list.appendChild(btn);
             }
-            
-            if (dataToRender.length > 500) {
-                 const msg = document.createElement('div');
-                 msg.className = "text-center text-xs text-gray-500 py-4";
-                 msg.innerText = "تم عرض 500 قناة. استخدم البحث للوصول لباقي القنوات.";
-                 list.appendChild(msg);
-            }
         }
 
         function playStream(url, name) {
@@ -352,6 +392,7 @@ DOCTYPE html>
                     hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
                         overlay.classList.add('hidden');
                         video.play().catch(e => console.log("Auto-play blocked"));
+                        video.focus(); // Focus video on play
                     });
                     
                     hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
@@ -365,13 +406,13 @@ DOCTYPE html>
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = url;
                     video.play();
+                    video.focus();
                 }
             }, 500);
         }
 
-        /* Full D-Pad Remote Control Navigation for TV Boxes and Controllers */
         document.addEventListener('keydown', function(e) {
-            const focusables = Array.from(document.querySelectorAll('.tv-focusable, .channel-item, button, input'));
+            const focusables = Array.from(document.querySelectorAll('.tv-focusable, .channel-item, button, input, video'));
             let currentIndex = focusables.indexOf(document.activeElement);
 
             if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -386,13 +427,20 @@ DOCTYPE html>
                     } else if (e.key === 'ArrowUp') {
                         currentIndex = (currentIndex - 1 + focusables.length) % focusables.length;
                     } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                        // Horizontal jump if needed, fallback to linear sequence for smoothness
                         currentIndex = (e.key === 'ArrowRight') ? (currentIndex + 1) % focusables.length : (currentIndex - 1 + focusables.length) % focusables.length;
                     }
                 }
                 
                 focusables[currentIndex].focus();
-                focusables[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                focusables[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Enter key mapping for TV Remotes
+            if (e.key === 'Enter') {
+                if(document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'VIDEO') {
+                    e.preventDefault();
+                    document.activeElement.click();
+                }
             }
         });
 
