@@ -33,91 +33,75 @@
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 12px 24px; border-radius: 8px; font-weight: bold; color: white; opacity: 0; transition: opacity 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;}
+        .toast { padding: 12px 24px; border-radius: 8px; font-weight: bold; color: white; opacity: 0; transition: opacity 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
         .toast.show { opacity: 1; }
         .toast.success { background-color: #10b981; }
         .toast.error { background-color: #ef4444; }
         
-        /* Remote Control Focus Styles */
-        .tv-focusable:focus, .tv-focused {
-            outline: 3px solid #e50914 !important;
+        /* تصميم التركيز الخاص بالريموت كونترول */
+        .tv-focusable { transition: all 0.2s ease-in-out; border: 2px solid transparent; }
+        
+        /* هذا هو التظليل الذي يظهر عند مرور الريموت (بدون فتح الكيبورد) */
+        .tv-focused {
+            outline: none !important;
+            border-color: #e50914 !important;
             background-color: #374151 !important;
             transform: scale(1.02);
-            transition: all 0.1s ease-in-out;
+            box-shadow: 0 0 15px rgba(229, 9, 20, 0.5);
             z-index: 10;
         }
 
         /* وضع التلفاز: إجبار العرض جنباً إلى جنب */
-        .layout-tv #user-view {
-            flex-direction: row !important;
-        }
-        .layout-tv #player-section {
-            height: 100% !important;
-            width: calc(100% - 320px) !important;
-            flex: none !important;
-        }
-        .layout-tv #sidebar-section {
-            height: 100% !important;
-            width: 320px !important;
-            flex: none !important;
-            border-top: none !important;
-            border-left: 1px solid #1f2937 !important;
-        }
+        .layout-tv #user-view { flex-direction: row !important; }
+        .layout-tv #player-section { height: 100% !important; width: calc(100% - 320px) !important; flex: none !important; }
+        .layout-tv #sidebar-section { height: 100% !important; width: 320px !important; flex: none !important; border-top: none !important; border-left: 1px solid #1f2937 !important; }
 
         /* وضع الهاتف: إجبار العرض الرأسي */
-        .layout-phone #user-view {
-            flex-direction: column !important;
-        }
-        .layout-phone #player-section {
-            height: 45vh !important;
-            width: 100% !important;
-            flex: none !important;
-        }
-        .layout-phone #sidebar-section {
-            height: 55vh !important;
-            width: 100% !important;
-            flex: none !important;
-            border-top: 1px solid #1f2937 !important;
-            border-left: none !important;
-        }
+        .layout-phone #user-view { flex-direction: column !important; }
+        .layout-phone #player-section { height: 40vh !important; width: 100% !important; flex: none !important; }
+        .layout-phone #sidebar-section { height: 60vh !important; width: 100% !important; flex: none !important; border-top: 1px solid #1f2937 !important; border-left: none !important; }
+
+        /* إخفاء أزرار التحكم الأصلية للفيديو في وضع ملء الشاشة للريموت */
+        video::-webkit-media-controls { display: none !important; }
     </style>
 </head>
 <body class="bg-dark-bg text-white h-screen flex flex-col">
 
     <div id="toast-container"></div>
 
-    <nav class="bg-dark-panel p-4 shadow-md z-20 flex justify-between items-center border-b border-gray-800 flex-shrink-0">
+    <nav class="bg-dark-panel p-3 md:p-4 shadow-md z-20 flex justify-between items-center border-b border-gray-800 flex-shrink-0">
         <div class="flex items-center gap-2">
-            <i class="fas fa-play-circle text-primary text-3xl"></i>
-            <h1 class="text-2xl font-black tracking-wider"><span class="text-primary">صلاح</span> تي في</h1>
+            <i class="fas fa-play-circle text-primary text-2xl md:text-3xl"></i>
+            <h1 class="text-xl md:text-2xl font-black tracking-wider"><span class="text-primary">صلاح</span> تي في</h1>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="toggleScreenLayoutMode()" class="px-3 py-2 bg-gray-800 text-yellow-400 rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable flex items-center gap-1" id="btn-layout-mode" title="تبديل وضع العرض">
+            <!-- أيقونة التبديل السحري -->
+            <button onclick="toggleScreenLayoutMode()" class="px-3 py-2 bg-gray-800 text-yellow-400 rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable flex items-center gap-2 shadow-lg border border-gray-600" id="btn-layout-mode" title="تبديل وضع العرض">
                 <i class="fas fa-tv text-lg" id="layout-icon"></i>
-                <span class="text-xs hidden sm:inline" id="layout-text">وضع التلفاز</span>
+                <span class="text-sm font-bold hidden sm:inline" id="layout-text">وضع التلفاز</span>
             </button>
             <button onclick="switchView('user')" class="px-4 py-2 bg-gray-800 text-white rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable" id="btn-user-view">
-                <i class="fas fa-tv mr-1"></i> <span class="hidden md:inline">المشاهدة</span>
+                <i class="fas fa-play mr-1"></i>
             </button>
             <button onclick="switchView('admin')" class="px-4 py-2 text-gray-400 rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable" id="btn-admin-view">
-                <i class="fas fa-cog mr-1"></i> <span class="hidden md:inline">الإعدادات</span>
+                <i class="fas fa-cog mr-1"></i>
             </button>
         </div>
     </nav>
 
-    <div id="app-wrapper" class="flex-1 flex flex-col overflow-hidden w-full transition-all duration-300">
+    <div id="app-wrapper" class="flex-1 flex flex-col overflow-hidden w-full transition-all duration-300 layout-phone">
         
         <main id="user-view" class="flex-1 flex flex-col lg:flex-row w-full fade-in overflow-hidden" style="display: flex;">
             
-            <!-- Video Player Section -->
-            <div id="player-section" class="flex-1 flex flex-col relative bg-black h-[45vh] lg:h-full flex-shrink-0 lg:flex-shrink transition-all duration-300">
+            <div id="player-section" class="flex-1 flex flex-col relative bg-black flex-shrink-0 lg:flex-shrink transition-all duration-300">
                 <div class="absolute top-4 right-4 z-10 bg-black bg-opacity-60 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> مباشر
                 </div>
                 
                 <div class="w-full bg-black relative flex-1 flex items-center justify-center min-h-0" id="player-container">
-                    <video id="video-player" class="w-full h-full object-contain" controls></video>
+                    <!-- تم إخفاء التحكم الأصلي ليتم التحكم عبر الأزرار المخصصة للريموت -->
+                    <video id="video-player" class="w-full h-full object-contain" playsinline></video>
                     
                     <div id="player-overlay" class="absolute inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center hidden p-6 text-center z-20">
                         <i class="fas fa-spinner fa-spin text-5xl text-primary mb-4" id="loading-spinner"></i>
@@ -125,53 +109,57 @@
                     </div>
                 </div>
                 
-                <div class="bg-dark-panel p-4 flex flex-col md:flex-row justify-between items-center border-t border-gray-800 gap-4 flex-shrink-0">
-                    <div>
-                        <h2 class="text-xl font-bold text-white" id="current-channel-name">اختر قناة للبدء</h2>
-                        <p class="text-gray-400 text-sm">مرحباً بك في بث Salah TV</p>
+                <!-- شريط أزرار التحكم المخصص للريموت كونترول -->
+                <div class="bg-gray-900 p-3 flex justify-between items-center border-t border-gray-800 flex-shrink-0">
+                    <div class="flex-1 overflow-hidden pr-2">
+                        <h2 class="text-lg font-bold text-white truncate" id="current-channel-name">اختر قناة للبدء</h2>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="togglePlayPause()" class="w-10 h-10 bg-gray-800 hover:bg-primary rounded-full flex items-center justify-center text-white transition-colors tv-focusable" id="btn-play-pause">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button onclick="toggleFullscreen()" class="w-10 h-10 bg-gray-800 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-colors tv-focusable" id="btn-fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Channels List Section -->
-            <div id="sidebar-section" class="w-full lg:w-96 bg-dark-panel border-r border-gray-800 flex flex-col h-[55vh] lg:h-full flex-shrink-0 transition-all duration-300">
-                <div class="p-4 border-b border-gray-800 bg-gray-900 z-10 flex-shrink-0">
+            <div id="sidebar-section" class="w-full lg:w-96 bg-dark-panel flex flex-col flex-shrink-0 transition-all duration-300">
+                <div class="p-3 border-b border-gray-800 bg-gray-900 z-10 flex-shrink-0">
                     <div class="relative">
-                        <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="ابحث عن قناة..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors tv-focusable">
+                        <!-- حقل البحث معدل لكي لا يفتح الكيبورد تلقائياً -->
+                        <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="اضغط OK للبحث..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors tv-focusable readonly-until-click">
                         <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                    </div>
-                    <div class="flex justify-between items-center mt-3">
-                        <h3 class="font-bold text-sm text-gray-300"><i class="fas fa-list-ul ml-2"></i>قائمة القنوات</h3>
-                        <span id="channel-count" class="text-xs text-primary font-bold bg-gray-800 px-2 py-1 rounded">0 قناة</span>
                     </div>
                 </div>
                 
-                <div class="flex-1 overflow-y-auto p-2" id="channels-list">
-                    <div class="text-center text-gray-500 py-10" id="empty-state">
+                <div class="flex-1 overflow-y-auto p-2 space-y-1" id="channels-list">
+                    <div class="text-center text-gray-500 py-10">
                         <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
-                        <p>لا توجد قنوات. يرجى سحب القنوات من الإعدادات.</p>
+                        <p>لا توجد قنوات.</p>
                     </div>
                 </div>
             </div>
         </main>
 
         <main id="admin-view" class="flex-1 p-4 lg:p-8 bg-dark-bg w-full fade-in overflow-y-auto" style="display: none;">
-            <div class="max-w-4xl mx-auto space-y-6">
+            <div class="max-w-2xl mx-auto space-y-6">
                 <div class="bg-dark-panel rounded-lg shadow-lg border border-gray-700 p-6">
-                    <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>بيانات السيرفر</h2>
+                    <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>إعدادات السيرفر</h2>
                     <form id="server-form" class="space-y-4">
                         <div>
-                            <label for="xtream-host" class="block text-gray-400 text-sm mb-1">رابط السيرفر (Host)</label>
-                            <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
+                            <label for="xtream-host" class="block text-gray-400 text-sm mb-1">الرابط (Host)</label>
+                            <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable readonly-until-click" dir="ltr">
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="xtream-user" class="block text-gray-400 text-sm mb-1">اسم المستخدم (Username)</label>
-                                <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
+                                <label for="xtream-user" class="block text-gray-400 text-sm mb-1">المستخدم (User)</label>
+                                <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable readonly-until-click" dir="ltr">
                             </div>
                             <div>
-                                <label for="xtream-pass" class="block text-gray-400 text-sm mb-1">كلمة المرور (Password)</label>
-                                <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
+                                <label for="xtream-pass" class="block text-gray-400 text-sm mb-1">كلمة المرور (Pass)</label>
+                                <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable readonly-until-click" dir="ltr">
                             </div>
                         </div>
                         <button type="button" onclick="fetchXtreamChannels()" class="w-full py-4 mt-4 bg-primary hover:bg-red-700 text-white rounded font-bold shadow-lg transition-colors flex justify-center items-center gap-2 tv-focusable">
@@ -186,23 +174,38 @@
     <script>
         let channelsData = [];
         let hlsPlayer = null;
-        let currentHost = '';
-        let currentUser = '';
-        let currentPass = '';
         let isForcedTvMode = false;
+        const videoElement = document.getElementById('video-player');
 
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i> ${message}`;
-            
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} mr-2"></i> ${message}`;
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // التحكم في الفيديو المخصص للريموت
+        function togglePlayPause() {
+            const icon = document.querySelector('#btn-play-pause i');
+            if (videoElement.paused) {
+                videoElement.play();
+                icon.className = 'fas fa-pause';
+            } else {
+                videoElement.pause();
+                icon.className = 'fas fa-play';
+            }
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById('player-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => console.log(err));
+            } else {
+                document.exitFullscreen();
+            }
         }
 
         function toggleScreenLayoutMode() {
@@ -215,67 +218,49 @@
             if (isForcedTvMode) {
                 wrapper.classList.remove('layout-phone');
                 wrapper.classList.add('layout-tv');
-                icon.className = "fas fa-mobile-alt text-lg";
+                icon.className = "fas fa-mobile-alt text-lg text-white";
                 text.textContent = "وضع الهاتف";
-                showNotification("تم تفعيل وضع التلفاز (جنباً إلى جنب)", "success");
-                
-                // محاولة إجبار الشاشة على الدوران العرضي في الهواتف
-                try {
-                    if (screen.orientation && screen.orientation.lock) {
-                        screen.orientation.lock('landscape').catch(e => console.log("Orientation lock not supported", e));
-                    }
-                } catch (e) {}
+                document.getElementById('btn-layout-mode').classList.replace('text-yellow-400', 'text-white');
+                showNotification("تم التبديل لعرض الشاشة الكبيرة");
             } else {
                 wrapper.classList.remove('layout-tv');
                 wrapper.classList.add('layout-phone');
-                icon.className = "fas fa-tv text-lg";
+                icon.className = "fas fa-tv text-lg text-yellow-400";
                 text.textContent = "وضع التلفاز";
-                showNotification("تم تفعيل وضع الهاتف (رأسي)", "success");
-                
-                // إلغاء إجبار الشاشة
-                try {
-                    if (screen.orientation && screen.orientation.unlock) {
-                        screen.orientation.unlock();
-                    }
-                } catch (e) {}
+                document.getElementById('btn-layout-mode').classList.replace('text-white', 'text-yellow-400');
+                showNotification("تم التبديل لعرض الهاتف");
             }
         }
 
         function switchView(viewName) {
             const userView = document.getElementById('user-view');
             const adminView = document.getElementById('admin-view');
-            
             if (viewName === 'user') {
                 userView.style.display = 'flex';
                 adminView.style.display = 'none';
                 document.getElementById('btn-user-view').classList.replace('text-gray-400', 'text-white');
-                document.getElementById('btn-user-view').classList.add('bg-gray-800');
-                document.getElementById('btn-admin-view').classList.remove('bg-gray-800', 'text-white');
-                document.getElementById('btn-admin-view').classList.add('text-gray-400');
+                document.getElementById('btn-admin-view').classList.replace('text-white', 'text-gray-400');
             } else {
                 userView.style.display = 'none';
                 adminView.style.display = 'block';
                 document.getElementById('btn-admin-view').classList.replace('text-gray-400', 'text-white');
-                document.getElementById('btn-admin-view').classList.add('bg-gray-800');
-                document.getElementById('btn-user-view').classList.remove('bg-gray-800', 'text-white');
-                document.getElementById('btn-user-view').classList.add('text-gray-400');
+                document.getElementById('btn-user-view').classList.replace('text-white', 'text-gray-400');
             }
+            // إعادة ضبط التركيز للريموت
+            setTimeout(() => { currentFocusIndex = -1; updateFocusables(); }, 100);
         }
 
         async function fetchXtreamChannels() {
-            currentHost = document.getElementById('xtream-host').value.trim();
-            currentUser = document.getElementById('xtream-user').value.trim();
-            currentPass = document.getElementById('xtream-pass').value.trim();
+            const host = document.getElementById('xtream-host').value.trim();
+            const user = document.getElementById('xtream-user').value.trim();
+            const pass = document.getElementById('xtream-pass').value.trim();
             
-            if(!currentHost || !currentUser || !currentPass) { 
-                showNotification("يرجى ملء جميع البيانات", "error"); 
-                return; 
-            }
+            if(!host || !user || !pass) return showNotification("أكمل البيانات", "error");
 
             const btn = document.querySelector('button[onclick="fetchXtreamChannels()"]');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> يتم سحب القنوات الآن...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري السحب...';
 
-            const rawApiUrl = `${currentHost}/player_api.php?username=${currentUser}&password=${currentPass}&action=get_live_streams`;
+            const rawApiUrl = `${host}/player_api.php?username=${user}&password=${pass}&action=get_live_streams`;
             const proxiedUrl = `/api/proxy?url=${encodeURIComponent(rawApiUrl)}`;
 
             try {
@@ -283,18 +268,26 @@
                 if (res.ok) {
                     const data = await res.json();
                     channelsData = Array.isArray(data) ? data : []; 
-                    
                     document.getElementById('channel-search').value = '';
-                    renderChannels(channelsData);
-                    
+                    renderChannels(channelsData, host, user, pass);
                     switchView('user');
-                    showNotification(`تم جلب ${channelsData.length} قناة بنجاح!`, "success");
+                    showNotification(`تم سحب ${channelsData.length} قناة!`, "success");
+                    
+                    // التركيز التلقائي على أول قناة في القائمة لتسهيل المشاهدة
+                    setTimeout(() => {
+                        const firstChannel = document.querySelector('.channel-item');
+                        if(firstChannel) {
+                            updateFocusables();
+                            const idx = focusables.indexOf(firstChannel);
+                            if(idx !== -1) setCustomFocus(idx);
+                        }
+                    }, 500);
+
                 } else {
-                    showNotification("تعذر الوصول إلى السيرفر. تأكد من صحة البيانات.", "error");
+                    showNotification("تعذر السحب، راجع البيانات", "error");
                 }
             } catch (err) {
-                console.error("Fetch error:", err);
-                showNotification("حدث خطأ أثناء الاتصال.", "error");
+                showNotification("خطأ في الاتصال", "error");
             } finally {
                 btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> جلب القنوات الآن';
             }
@@ -302,153 +295,193 @@
 
         function filterChannels() {
             const searchTerm = document.getElementById('channel-search').value.toLowerCase();
+            const host = document.getElementById('xtream-host').value.trim();
+            const user = document.getElementById('xtream-user').value.trim();
+            const pass = document.getElementById('xtream-pass').value.trim();
+            
             if (!searchTerm) {
-                renderChannels(channelsData);
+                renderChannels(channelsData, host, user, pass);
                 return;
             }
-
-            const filtered = channelsData.filter(ch => 
-                ch.name && ch.name.toLowerCase().includes(searchTerm)
-            );
-            renderChannels(filtered);
+            const filtered = channelsData.filter(ch => ch.name && ch.name.toLowerCase().includes(searchTerm));
+            renderChannels(filtered, host, user, pass);
         }
 
-        function renderChannels(dataToRender) {
+        function renderChannels(dataToRender, host, user, pass) {
             const list = document.getElementById('channels-list');
             list.innerHTML = ''; 
 
-            const channelCountEl = document.getElementById('channel-count');
-            if (channelCountEl) channelCountEl.textContent = `${dataToRender.length} قناة`;
-
             if (!dataToRender || dataToRender.length === 0) {
-                list.innerHTML = `
-                    <div class="text-center text-gray-500 py-10" id="empty-state">
-                        <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
-                        <p>لا توجد قنوات مطابقة.</p>
-                    </div>`;
+                list.innerHTML = `<div class="text-center text-gray-500 py-10"><p>لا توجد قنوات</p></div>`;
+                updateFocusables();
                 return;
             }
 
-            const displayLimit = Math.min(dataToRender.length, 500);
-            
-            for (let i = 0; i < displayLimit; i++) {
+            const limit = Math.min(dataToRender.length, 300);
+            for (let i = 0; i < limit; i++) {
                 const ch = dataToRender[i];
-                const rawPlayUrl = `${currentHost}/live/${currentUser}/${currentPass}/${ch.stream_id}.m3u8`;
+                const rawPlayUrl = `${host}/live/${user}/${pass}/${ch.stream_id}.m3u8`;
                 const proxiedPlayUrl = `/api/proxy?url=${encodeURIComponent(rawPlayUrl)}`;
                 
                 const btn = document.createElement('button');
-                btn.className = 'channel-item w-full text-right p-3 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center gap-3 border border-transparent focus:outline-none tv-focusable';
-                btn.onclick = (e) => {
-                    document.querySelectorAll('.channel-item').forEach(b => b.classList.remove('border-primary', 'border-l-4'));
-                    e.currentTarget.classList.add('border-primary', 'border-l-4');
-                    playStream(proxiedPlayUrl, ch.name || `قناة ${ch.stream_id}`);
+                btn.className = 'channel-item w-full text-right p-3 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center gap-3 border-2 border-transparent focus:outline-none tv-focusable';
+                btn.onclick = () => {
+                    document.querySelectorAll('.channel-item').forEach(b => b.classList.remove('border-primary', 'bg-gray-700'));
+                    btn.classList.add('border-primary', 'bg-gray-700');
+                    playStream(proxiedPlayUrl, ch.name);
                 };
                 
-                const iconHtml = ch.stream_icon ? 
-                    `<img src="${ch.stream_icon}" onerror="this.outerHTML='<i class=\\'fas fa-tv\\'></i>'" class="w-full h-full object-contain rounded-full">` : 
-                    `<i class="fas fa-tv"></i>`;
-
                 btn.innerHTML = `
-                    <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden p-1">
-                        ${iconHtml}
+                    <div class="w-10 h-10 rounded-full bg-black overflow-hidden flex items-center justify-center p-1 flex-shrink-0">
+                        ${ch.stream_icon ? `<img src="${ch.stream_icon}" class="w-full h-full object-contain" onerror="this.outerHTML='<i class=\\'fas fa-tv text-gray-500\\'></i>'">` : `<i class="fas fa-tv text-gray-500"></i>`}
                     </div>
                     <div class="flex-1 overflow-hidden">
                         <div class="font-bold text-white truncate text-sm">${ch.name}</div>
-                        ${ch.category_name ? `<div class="text-xs text-gray-400 truncate">${ch.category_name}</div>` : ''}
                     </div>
                 `;
                 list.appendChild(btn);
             }
+            updateFocusables();
         }
 
         function playStream(url, name) {
             document.getElementById('current-channel-name').textContent = name;
-            const video = document.getElementById('video-player');
             const overlay = document.getElementById('player-overlay');
-            const spinner = document.getElementById('loading-spinner');
-            const msg = document.getElementById('overlay-message');
-
-            video.pause();
+            
+            videoElement.pause();
             overlay.classList.remove('hidden');
-            spinner.classList.remove('hidden');
-            msg.textContent = "جاري تشغيل القناة...";
-
+            
             if(hlsPlayer) hlsPlayer.destroy();
 
             setTimeout(() => {
                 if (Hls.isSupported()) {
-                    hlsPlayer = new Hls({ 
-                        maxBufferLength: 30,
-                        xhrSetup: function(xhr, url) {
-                            if (url.includes('/api/proxy')) return;
-                            const proxiedUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
-                            xhr.open('GET', proxiedUrl, true);
-                        }
-                    });
-                    
+                    hlsPlayer = new Hls();
                     hlsPlayer.loadSource(url);
-                    hlsPlayer.attachMedia(video);
-                    
+                    hlsPlayer.attachMedia(videoElement);
                     hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
                         overlay.classList.add('hidden');
-                        video.play().catch(e => console.log("Auto-play blocked"));
-                        video.focus(); // Focus video on play
+                        videoElement.play();
+                        document.querySelector('#btn-play-pause i').className = 'fas fa-pause';
                     });
-                    
-                    hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.fatal) {
-                            console.error('HLS Error:', data);
-                            msg.textContent = "عذراً، البث متوقف مؤقتاً.";
-                            spinner.classList.add('hidden');
-                            hlsPlayer.destroy();
-                        }
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = url;
-                    video.play();
-                    video.focus();
+                    hlsPlayer.on(Hls.Events.ERROR, (e, data) => { if(data.fatal) overlay.classList.add('hidden'); });
+                } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoElement.src = url;
+                    videoElement.play();
+                    overlay.classList.add('hidden');
                 }
-            }, 500);
+            }, 300);
+        }
+
+        let focusables = [];
+        let currentFocusIndex = -1;
+
+        function updateFocusables() {
+            // نأخذ فقط العناصر المرئية والقابلة للتركيز
+            focusables = Array.from(document.querySelectorAll('.tv-focusable')).filter(el => el.offsetParent !== null);
+        }
+
+        function setCustomFocus(index) {
+            if (focusables.length === 0) return;
+            
+            // إزالة التظليل عن العنصر السابق
+            if (currentFocusIndex >= 0 && focusables[currentFocusIndex]) {
+                focusables[currentFocusIndex].classList.remove('tv-focused');
+            }
+
+            currentFocusIndex = index;
+            const target = focusables[currentFocusIndex];
+            
+            // تطبيق التظليل المخصص فقط (بدون native focus لمنع الكيبورد)
+            target.classList.add('tv-focused');
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         document.addEventListener('keydown', function(e) {
-            const focusables = Array.from(document.querySelectorAll('.tv-focusable, .channel-item, button, input, video'));
-            let currentIndex = focusables.indexOf(document.activeElement);
+            updateFocusables();
+            if (focusables.length === 0) return;
 
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                e.preventDefault();
-                if (focusables.length === 0) return;
-
-                if (currentIndex === -1) {
-                    currentIndex = 0;
-                } else {
-                    if (e.key === 'ArrowDown') {
-                        currentIndex = (currentIndex + 1) % focusables.length;
-                    } else if (e.key === 'ArrowUp') {
-                        currentIndex = (currentIndex - 1 + focusables.length) % focusables.length;
-                    } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                        currentIndex = (e.key === 'ArrowRight') ? (currentIndex + 1) % focusables.length : (currentIndex - 1 + focusables.length) % focusables.length;
-                    }
+            // إذا لم يكن هناك عنصر محدد، ابدأ من الأول
+            if (currentFocusIndex === -1) {
+                if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    setCustomFocus(0);
+                    e.preventDefault();
                 }
+                return;
+            }
+
+            const currentEl = focusables[currentFocusIndex];
+            
+            // إدارة الكيبورد الداخلي للحقول
+            if (document.activeElement === currentEl && currentEl.tagName === 'INPUT') {
+                // إذا كان يكتب داخل حقل، لا نتدخل في اليمين واليسار لكي يحرك مؤشر الكتابة
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') return;
                 
-                focusables[currentIndex].focus();
-                focusables[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // إذا ضغط أعلى أو أسفل أو هروب، نخرج من وضع الكتابة ونغلق الكيبورد
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Escape') {
+                    currentEl.blur(); 
+                    e.preventDefault();
+                }
+            }
+
+            // خوارزمية التنقل المكاني الذكية
+            if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault(); 
+                
+                const currentRect = currentEl.getBoundingClientRect();
+                let bestMatchIndex = currentFocusIndex;
+                let minDistance = Infinity;
+
+                focusables.forEach((target, index) => {
+                    if (index === currentFocusIndex) return;
+                    const targetRect = target.getBoundingClientRect();
+                    
+                    let isCandidate = false;
+                    
+                    // حساب الاتجاهات هندسياً
+                    if (e.key === 'ArrowDown' && targetRect.top >= currentRect.bottom - 20) isCandidate = true;
+                    if (e.key === 'ArrowUp' && targetRect.bottom <= currentRect.top + 20) isCandidate = true;
+                    if (e.key === 'ArrowRight' && targetRect.left >= currentRect.right - 20) isCandidate = true;
+                    if (e.key === 'ArrowLeft' && targetRect.right <= currentRect.left + 20) isCandidate = true;
+
+                    if (isCandidate) {
+                        // حساب أقرب مسافة
+                        const distance = Math.hypot(
+                            (targetRect.x + targetRect.width/2) - (currentRect.x + currentRect.width/2), 
+                            (targetRect.y + targetRect.height/2) - (currentRect.y + currentRect.height/2)
+                        );
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            bestMatchIndex = index;
+                        }
+                    }
+                });
+
+                if (bestMatchIndex !== currentFocusIndex) {
+                    setCustomFocus(bestMatchIndex);
+                }
             }
             
-            // Enter key mapping for TV Remotes
+            // زر الأوكيه / الإدخال
             if (e.key === 'Enter') {
-                if(document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'VIDEO') {
-                    e.preventDefault();
-                    document.activeElement.click();
+                e.preventDefault();
+                if (currentEl.tagName === 'INPUT') {
+                    // هنا فقط نفتح الكيبورد
+                    currentEl.focus(); 
+                } else {
+                    // نضغط على الزر
+                    currentEl.click();
                 }
             }
         });
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
-            });
-        }
+        // تهيئة مبدئية
+        window.addEventListener('load', () => {
+            updateFocusables();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error', err));
+            }
+        });
+
     </script>
 </body>
 </html>
