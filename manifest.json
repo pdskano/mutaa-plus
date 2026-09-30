@@ -1,22 +1,21 @@
 {
-  "name": "صلاح تي في - Salah TV",
-  "short_name": "صلاح TV",
-  "description": "تطبيق بث مباشر للقنوات الفضائية بدون تقطيع",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#141414",
-  "theme_color": "#e50914",
-  "orientation": "portrait-primary",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/7163/7163777.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/7163/7163777.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+"name": "صلاح تي في - Salah TV",
+"short_name": "Salah TV",
+"start_url": "/index.html",
+"display": "standalone",
+"background_color": "#141414",
+"theme_color": "#e50914",
+"orientation": "portrait-primary",
+"icons": [
+{
+"src": "https://i.postimg.cc/WzSc9061/Photoroom-20260930-153631.png",
+"sizes": "192x192",
+"type": "image/png"
+},
+{
+"src": "https://i.postimg.cc/WzSc9061/Photoroom-20260930-153631.png",
+"sizes": "512x512",
+"type": "image/png"
+}
+]
 }
