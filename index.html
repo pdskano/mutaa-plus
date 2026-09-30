@@ -38,6 +38,14 @@
         .toast.show { opacity: 1; }
         .toast.success { background-color: #10b981; }
         .toast.error { background-color: #ef4444; }
+        
+        /* تفعيل تأثير التركيز للريموت كونترول */
+        .tv-focusable:focus {
+            outline: 3px solid #e50914 !important;
+            background-color: #374151 !important;
+            transform: scale(1.02);
+            transition: all 0.1s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-dark-bg text-white h-screen flex flex-col">
@@ -50,10 +58,10 @@
             <h1 class="text-2xl font-black tracking-wider"><span class="text-primary">صلاح</span> تي في</h1>
         </div>
         <div class="flex gap-2">
-            <button onclick="switchView('user')" class="px-4 py-2 bg-gray-800 text-white rounded-md transition-colors font-semibold hover:bg-gray-700" id="btn-user-view">
+            <button onclick="switchView('user')" class="px-4 py-2 bg-gray-800 text-white rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable" id="btn-user-view">
                 <i class="fas fa-tv mr-1"></i> <span class="hidden md:inline">المشاهدة</span>
             </button>
-            <button onclick="switchView('admin')" class="px-4 py-2 text-gray-400 rounded-md transition-colors font-semibold hover:bg-gray-700" id="btn-admin-view">
+            <button onclick="switchView('admin')" class="px-4 py-2 text-gray-400 rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable" id="btn-admin-view">
                 <i class="fas fa-cog mr-1"></i> <span class="hidden md:inline">الإعدادات</span>
             </button>
         </div>
@@ -86,7 +94,7 @@
         <div class="w-full lg:w-96 bg-dark-panel border-r border-gray-800 flex flex-col h-[50vh] lg:h-full flex-shrink-0">
             <div class="p-4 border-b border-gray-800 bg-gray-900 z-10 flex-shrink-0">
                 <div class="relative">
-                    <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="ابحث عن قناة..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors">
+                    <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="ابحث عن قناة..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors tv-focusable">
                     <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                 </div>
                 <div class="flex justify-between items-center mt-3">
@@ -111,19 +119,19 @@
                 <form id="server-form" class="space-y-4">
                     <div>
                         <label for="xtream-host" class="block text-gray-400 text-sm mb-1">رابط السيرفر (Host)</label>
-                        <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
+                        <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="xtream-user" class="block text-gray-400 text-sm mb-1">اسم المستخدم (Username)</label>
-                            <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
+                            <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
                         </div>
                         <div>
                             <label for="xtream-pass" class="block text-gray-400 text-sm mb-1">كلمة المرور (Password)</label>
-                            <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
+                            <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
                         </div>
                     </div>
-                    <button type="button" onclick="fetchXtreamChannels()" class="w-full py-4 mt-4 bg-primary hover:bg-red-700 text-white rounded font-bold shadow-lg transition-colors flex justify-center items-center gap-2">
+                    <button type="button" onclick="fetchXtreamChannels()" class="w-full py-4 mt-4 bg-primary hover:bg-red-700 text-white rounded font-bold shadow-lg transition-colors flex justify-center items-center gap-2 tv-focusable">
                         <i class="fas fa-cloud-download-alt"></i> جلب القنوات الآن
                     </button>
                 </form>
@@ -234,7 +242,7 @@
 
             if (dataToRender.length === 0) {
                 list.innerHTML = `
-                    <div class="text-center text-gray-500 py-10">
+                    <div class="text-center text-gray-500 py-10" id="empty-state">
                         <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
                         <p>لا توجد قنوات.</p>
                     </div>`;
@@ -249,7 +257,7 @@
                 const proxiedPlayUrl = `/api/proxy?url=${encodeURIComponent(rawPlayUrl)}`;
                 
                 const btn = document.createElement('button');
-                btn.className = 'channel-item w-full text-right p-3 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center gap-3 border border-transparent focus:outline-none';
+                btn.className = 'channel-item w-full text-right p-3 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center gap-3 border border-transparent focus:outline-none tv-focusable';
                 btn.onclick = (e) => {
                     document.querySelectorAll('.channel-item').forEach(b => b.classList.remove('border-primary', 'border-l-4'));
                     e.currentTarget.classList.add('border-primary', 'border-l-4');
@@ -327,6 +335,28 @@
                 }
             }, 500);
         }
+
+        /* نظام تفعيل أسهم الريموت كونترول (D-Pad Navigation) للشاشات الذكية */
+        document.addEventListener('keydown', function(e) {
+            const focusables = Array.from(document.querySelectorAll('.tv-focusable, .channel-item'));
+            const currentIndex = focusables.indexOf(document.activeElement);
+
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (focusables.length === 0) return;
+
+                let nextIndex = 0;
+                if (currentIndex !== -1) {
+                    if (e.key === 'ArrowDown') {
+                        nextIndex = (currentIndex + 1) % focusables.length;
+                    } else {
+                        nextIndex = (currentIndex - 1 + focusables.length) % focusables.length;
+                    }
+                }
+                focusables[nextIndex].focus();
+                focusables[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
