@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>صلاح تي في - Salah TV</title>
     
-    <!-- إضافة ملف التطبيق (PWA) -->
+    <!-- ربط ملفات تطبيق PWA والشعار الجديد -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#e50914">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/7163/7163777.png">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/WzSc9061/Photoroom-20260930-153631.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -44,7 +44,6 @@
 
     <div id="toast-container"></div>
 
-    <!-- شريط التنقل -->
     <nav class="bg-dark-panel p-4 shadow-md z-20 flex justify-between items-center border-b border-gray-800 flex-shrink-0">
         <div class="flex items-center gap-2">
             <i class="fas fa-play-circle text-primary text-3xl"></i>
@@ -60,16 +59,13 @@
         </div>
     </nav>
 
-    <!-- شاشة المشاهدة -->
     <main id="user-view" class="flex-1 flex flex-col lg:flex-row w-full fade-in overflow-hidden" style="display: flex;">
         
-        <!-- المشغل (Fixed Area) -->
         <div class="flex-1 flex flex-col relative bg-black h-[50vh] lg:h-full flex-shrink-0 lg:flex-shrink">
             <div class="absolute top-4 right-4 z-10 bg-black bg-opacity-60 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> مباشر
             </div>
             
-            <!-- Video Container -->
             <div class="w-full bg-black relative flex-1 flex items-center justify-center min-h-0" id="player-container">
                 <video id="video-player" class="w-full h-full object-contain" controls></video>
                 
@@ -79,7 +75,6 @@
                 </div>
             </div>
             
-            <!-- Player Info Bar -->
             <div class="bg-dark-panel p-4 flex flex-col md:flex-row justify-between items-center border-t border-gray-800 gap-4 flex-shrink-0">
                 <div>
                     <h2 class="text-xl font-bold text-white" id="current-channel-name">اختر قناة للبدء</h2>
@@ -88,9 +83,7 @@
             </div>
         </div>
 
-        <!-- قائمة القنوات (Scrollable Area) -->
         <div class="w-full lg:w-96 bg-dark-panel border-r border-gray-800 flex flex-col h-[50vh] lg:h-full flex-shrink-0">
-            <!-- Search Bar (Fixed at top of list) -->
             <div class="p-4 border-b border-gray-800 bg-gray-900 z-10 flex-shrink-0">
                 <div class="relative">
                     <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="ابحث عن قناة..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors">
@@ -102,9 +95,7 @@
                 </div>
             </div>
             
-            <!-- Scrollable List -->
             <div class="flex-1 overflow-y-auto p-2" id="channels-list">
-                <!-- سيتم إضافة القنوات هنا -->
                 <div class="text-center text-gray-500 py-10" id="empty-state">
                     <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
                     <p>لا توجد قنوات. يرجى سحب القنوات من الإعدادات.</p>
@@ -113,23 +104,22 @@
         </div>
     </main>
 
-    <!-- الإعدادات -->
     <main id="admin-view" class="flex-1 p-4 lg:p-8 bg-dark-bg w-full fade-in overflow-y-auto" style="display: none;">
         <div class="max-w-4xl mx-auto space-y-6">
             <div class="bg-dark-panel rounded-lg shadow-lg border border-gray-700 p-6">
                 <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>بيانات السيرفر</h2>
                 <form id="server-form" class="space-y-4">
                     <div>
-                        <label class="block text-gray-400 text-sm mb-1">رابط السيرفر (Host)</label>
+                        <label for="xtream-host" class="block text-gray-400 text-sm mb-1">رابط السيرفر (Host)</label>
                         <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-gray-400 text-sm mb-1">اسم المستخدم (Username)</label>
+                            <label for="xtream-user" class="block text-gray-400 text-sm mb-1">اسم المستخدم (Username)</label>
                             <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
                         </div>
                         <div>
-                            <label class="block text-gray-400 text-sm mb-1">كلمة المرور (Password)</label>
+                            <label for="xtream-pass" class="block text-gray-400 text-sm mb-1">كلمة المرور (Password)</label>
                             <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
                         </div>
                     </div>
@@ -198,7 +188,6 @@
             const btn = document.querySelector('button[onclick="fetchXtreamChannels()"]');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> يتم سحب القنوات الآن...';
 
-            // Use the proxy to avoid CORS/HTTPS errors
             const rawApiUrl = `${currentHost}/player_api.php?username=${currentUser}&password=${currentPass}&action=get_live_streams`;
             const proxiedUrl = `/api/proxy?url=${encodeURIComponent(rawApiUrl)}`;
 
@@ -239,7 +228,7 @@
 
         function renderChannels(dataToRender) {
             const list = document.getElementById('channels-list');
-            list.innerHTML = ''; // This safely clears the list
+            list.innerHTML = ''; 
 
             document.getElementById('channel-count').textContent = `${dataToRender.length} قناة`;
 
@@ -310,12 +299,7 @@
                     hlsPlayer = new Hls({ 
                         maxBufferLength: 30,
                         xhrSetup: function(xhr, url) {
-                            // If the URL is already going through our proxy, don't wrap it again
                             if (url.includes('/api/proxy')) return;
-                            
-                            // For nested m3u8 playlists or TS segments that might use relative paths or original HTTP paths,
-                            // we need to ensure they also go through the proxy to avoid mixed content errors.
-                            // We can try to modify the URL before the request is made.
                             const proxiedUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
                             xhr.open('GET', proxiedUrl, true);
                         }
@@ -344,7 +328,6 @@
             }, 500);
         }
 
-        // تسجيل Service Worker لتحويل الموقع إلى تطبيق
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
