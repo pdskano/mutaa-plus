@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متعة بلاس - مشاهدة القنوات الحية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 'cairo': ['Cairo', 'sans-serif'] },
+                    colors: { 'primary': '#e50914', 'dark-bg': '#141414', 'dark-panel': '#1f1f1f' }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #141414; color: #ffffff; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #141414; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-dark-bg text-white min-h-screen flex flex-col">
+
+    <!-- شريط التنقل -->
+    <nav class="bg-dark-panel p-4 shadow-md z-10 flex justify-between items-center sticky top-0 border-b border-gray-800">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-play-circle text-primary text-3xl"></i>
+            <h1 class="text-2xl font-black tracking-wider"><span class="text-primary">متعة</span> بلاس</h1>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="switchView('user')" class="px-4 py-2 bg-gray-800 text-white rounded-md transition-colors font-semibold hover:bg-gray-700" id="btn-user-view">
+                <i class="fas fa-tv mr-1"></i> <span class="hidden md:inline">المشاهدة</span>
+            </button>
+            <button onclick="switchView('admin')" class="px-4 py-2 text-gray-400 rounded-md transition-colors font-semibold hover:bg-gray-700" id="btn-admin-view">
+                <i class="fas fa-cog mr-1"></i> <span class="hidden md:inline">لوحة التحكم</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- شاشة المشاهدة -->
+    <main id="user-view" class="flex-1 flex flex-col lg:flex-row w-full fade-in" style="display: flex;">
+        <!-- المشغل -->
+        <div class="flex-1 flex flex-col relative bg-black">
+            <div class="absolute top-4 right-4 z-10 bg-black bg-opacity-60 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> مباشر
+            </div>
+            
+            <div class="w-full bg-black relative flex items-center justify-center min-h-[40vh] lg:h-[70vh]" id="player-container">
+                <video id="video-player" class="w-full h-full object-contain" controls></video>
+                
+                <div id="player-overlay" class="absolute inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center hidden p-6 text-center z-20">
+                    <i class="fas fa-spinner fa-spin text-5xl text-primary mb-4" id="loading-spinner"></i>
+                    <p id="overlay-message" class="text-xl font-bold text-gray-300">جاري الاتصال بالسيرفر الآمن...</p>
+                </div>
+            </div>
+            
+            <div class="bg-dark-panel p-4 flex flex-col md:flex-row justify-between items-center border-t border-gray-800 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white" id="current-channel-name">اختر قناة للبدء</h2>
+                    <p class="text-gray-400 text-sm">البث يعمل الآن عبر Vercel Node.js Proxy</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- قائمة القنوات -->
+        <div class="w-full lg:w-80 bg-dark-panel border-r border-gray-800 flex flex-col h-[50vh] lg:h-auto">
+            <div class="p-4 border-b border-gray-800 bg-gray-900 sticky top-0 z-10">
+                <h3 class="font-bold text-lg"><i class="fas fa-list-ul ml-2"></i>قائمة القنوات</h3>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2" id="channels-list">
+                <!-- سيتم إضافة القنوات هنا -->
+            </div>
+        </div>
+    </main>
+
+    <!-- لوحة التحكم -->
+    <main id="admin-view" class="flex-1 p-4 lg:p-8 bg-dark-bg w-full fade-in" style="display: none;">
+        <div class="max-w-4xl mx-auto space-y-6">
+            <div class="bg-dark-panel rounded-lg shadow-lg border border-gray-700 p-6">
+                <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>إعدادات سيرفر Xtream</h2>
+                <form id="server-form" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-400 text-sm mb-1">رابط السيرفر (HTTP/HTTPS)</label>
+                        <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">اسم المستخدم</label>
+                            <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">كلمة المرور</label>
+                            <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
+                        </div>
+                    </div>
+                    <button type="button" onclick="fetchXtreamChannels()" class="w-full py-4 mt-4 bg-green-600 hover:bg-green-500 text-white rounded font-bold shadow-lg transition-colors flex justify-center items-center gap-2">
+                        <i class="fas fa-cloud-download-alt"></i> سحب قنوات السيرفر عبر Vercel
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let channelsData = [];
+        let hlsPlayer = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTestChannel();
+        });
+
+        function renderTestChannel() {
+            const list = document.getElementById('channels-list');
+            list.innerHTML = `
+                <button onclick="playChannel('test')" class="w-full text-right p-3 mb-2 rounded-lg bg-gray-800 border-l-4 border-l-primary flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-primary">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white">قناة تجريبية</div>
+                            <div class="text-xs text-gray-400">للتأكد من عمل المشغل</div>
+                        </div>
+                    </div>
+                </button>
+            `;
+        }
+
+        function switchView(viewName) {
+            const userView = document.getElementById('user-view');
+            const adminView = document.getElementById('admin-view');
+            
+            if (viewName === 'user') {
+                userView.style.display = 'flex';
+                adminView.style.display = 'none';
+                document.getElementById('btn-user-view').classList.replace('text-gray-400', 'text-white');
+                document.getElementById('btn-user-view').classList.add('bg-gray-800');
+                document.getElementById('btn-admin-view').classList.remove('bg-gray-800', 'text-white');
+                document.getElementById('btn-admin-view').classList.add('text-gray-400');
+            } else {
+                userView.style.display = 'none';
+                adminView.style.display = 'block';
+                document.getElementById('btn-admin-view').classList.replace('text-gray-400', 'text-white');
+                document.getElementById('btn-admin-view').classList.add('bg-gray-800');
+                document.getElementById('btn-user-view').classList.remove('bg-gray-800', 'text-white');
+                document.getElementById('btn-user-view').classList.add('text-gray-400');
+            }
+        }
+
+        async function fetchXtreamChannels() {
+            const host = document.getElementById('xtream-host').value.trim();
+            const user = document.getElementById('xtream-user').value.trim();
+            const pass = document.getElementById('xtream-pass').value.trim();
+            
+            if(!host || !user || !pass) { alert("يرجى ملء جميع البيانات"); return; }
+
+            const btn = document.querySelector('button[onclick="fetchXtreamChannels()"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري سحب القنوات عبر السيرفر...';
+
+            const rawApiUrl = `${host}/player_api.php?username=${user}&password=${pass}&action=get_live_streams`;
+            // توجيه الطلب إلى الخادم الوسيط الخاص بنا على Vercel
+            const proxiedUrl = `/api/proxy?url=${encodeURIComponent(rawApiUrl)}`;
+
+            try {
+                const res = await fetch(proxiedUrl);
+                if (res.ok) {
+                    const data = await res.json();
+                    channelsData = Array.isArray(data) ? data.slice(0, 500) : []; // أخذ أول 500 قناة
+                    renderChannels(host, user, pass);
+                    switchView('user');
+                    alert("تم سحب القنوات بنجاح!");
+                } else {
+                    alert("فشل الاتصال بالسيرفر. تأكد من صحة البيانات.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("تعذر الوصول إلى السيرفر. تأكد أن مشروع Vercel يعمل بشكل صحيح.");
+            } finally {
+                btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> سحب قنوات السيرفر عبر Vercel';
+            }
+        }
+
+        function renderChannels(host, user, pass) {
+            const list = document.getElementById('channels-list');
+            list.innerHTML = '';
+
+            channelsData.forEach(ch => {
+                const rawPlayUrl = `${host}/live/${user}/${pass}/${ch.stream_id}.m3u8`;
+                const proxiedPlayUrl = `/api/proxy?url=${encodeURIComponent(rawPlayUrl)}`;
+                
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-right p-3 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center gap-3 border border-transparent focus:border-primary';
+                btn.onclick = () => playStream(proxiedPlayUrl, ch.name || `قناة ${ch.stream_id}`);
+                
+                btn.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-blue-400">
+                        <i class="fas fa-tv"></i>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="font-bold text-white truncate text-sm">${ch.name}</div>
+                    </div>
+                `;
+                list.appendChild(btn);
+            });
+        }
+
+        function playChannel(type) {
+            if(type === 'test') {
+                playStream('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', 'قناة تجريبية');
+            }
+        }
+
+        function playStream(url, name) {
+            document.getElementById('current-channel-name').textContent = name;
+            const video = document.getElementById('video-player');
+            const overlay = document.getElementById('player-overlay');
+            const spinner = document.getElementById('loading-spinner');
+            const msg = document.getElementById('overlay-message');
+
+            video.pause();
+            overlay.classList.remove('hidden');
+            spinner.classList.remove('hidden');
+            msg.textContent = "جاري جلب البث عبر Vercel...";
+
+            if(hlsPlayer) hlsPlayer.destroy();
+
+            setTimeout(() => {
+                if (Hls.isSupported()) {
+                    hlsPlayer = new Hls({ maxBufferLength: 30 });
+                    hlsPlayer.loadSource(url);
+                    hlsPlayer.attachMedia(video);
+                    
+                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
+                        overlay.classList.add('hidden');
+                        video.play().catch(e => console.log("Auto-play blocked"));
+                    });
+                    
+                    hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            msg.textContent = "فشل تشغيل القناة (قد تكون متوقفة من المصدر)";
+                            spinner.classList.add('hidden');
+                            hlsPlayer.destroy();
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.play();
+                }
+            }, 500);
+        }
+    </script>
+</body>
+</html>

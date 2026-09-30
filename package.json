@@ -1,0 +1,9 @@
+{
+  "name": "mutaa-plus-iptv",
+  "version": "1.0.0",
+  "description": "IPTV Web Player with Node.js Proxy for Vercel",
+  "scripts": {
+    "start": "echo 'This project is designed for Vercel Serverless deployment.'"
+  },
+  "dependencies": {}
+}
