@@ -49,7 +49,7 @@
                 <i class="fas fa-tv mr-1"></i> <span class="hidden md:inline">المشاهدة</span>
             </button>
             <button onclick="switchView('admin')" class="px-4 py-2 text-gray-400 rounded-md transition-colors font-semibold hover:bg-gray-700" id="btn-admin-view">
-                <i class="fas fa-cog mr-1"></i> <span class="hidden md:inline">لوحة التحكم</span>
+                <i class="fas fa-cog mr-1"></i> <span class="hidden md:inline">الإعدادات</span>
             </button>
         </div>
     </nav>
@@ -101,29 +101,29 @@
                 <!-- سيتم إضافة القنوات هنا -->
                 <div class="text-center text-gray-500 py-10" id="empty-state">
                     <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
-                    <p>لا توجد قنوات. يرجى إضافة القنوات من لوحة التحكم.</p>
+                    <p>لا توجد قنوات. يرجى سحب القنوات من الإعدادات.</p>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- لوحة التحكم -->
+    <!-- الإعدادات -->
     <main id="admin-view" class="flex-1 p-4 lg:p-8 bg-dark-bg w-full fade-in overflow-y-auto" style="display: none;">
         <div class="max-w-4xl mx-auto space-y-6">
             <div class="bg-dark-panel rounded-lg shadow-lg border border-gray-700 p-6">
-                <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>إعدادات السيرفر</h2>
+                <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>بيانات السيرفر</h2>
                 <form id="server-form" class="space-y-4">
                     <div>
-                        <label class="block text-gray-400 text-sm mb-1">رابط السيرفر</label>
+                        <label class="block text-gray-400 text-sm mb-1">رابط السيرفر (Host)</label>
                         <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-gray-400 text-sm mb-1">اسم المستخدم</label>
+                            <label class="block text-gray-400 text-sm mb-1">اسم المستخدم (Username)</label>
                             <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
                         </div>
                         <div>
-                            <label class="block text-gray-400 text-sm mb-1">كلمة المرور</label>
+                            <label class="block text-gray-400 text-sm mb-1">كلمة المرور (Password)</label>
                             <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none" dir="ltr">
                         </div>
                     </div>
@@ -142,11 +142,6 @@
         let currentUser = '';
         let currentPass = '';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // القائمة فارغة في البداية
-        });
-
-        // دالة عرض الإشعارات
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -163,7 +158,6 @@
             }, 3000);
         }
 
-        // دالة التبديل بين الشاشات
         function switchView(viewName) {
             const userView = document.getElementById('user-view');
             const adminView = document.getElementById('admin-view');
@@ -198,6 +192,7 @@
             const btn = document.querySelector('button[onclick="fetchXtreamChannels()"]');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> يتم سحب القنوات الآن...';
 
+            // Use the proxy to avoid CORS/HTTPS errors
             const rawApiUrl = `${currentHost}/player_api.php?username=${currentUser}&password=${currentPass}&action=get_live_streams`;
             const proxiedUrl = `/api/proxy?url=${encodeURIComponent(rawApiUrl)}`;
 
@@ -213,17 +208,16 @@
                     switchView('user');
                     showNotification(`تم جلب ${channelsData.length} قناة بنجاح!`, "success");
                 } else {
-                    showNotification("فشل الاتصال بالسيرفر. تأكد من صحة البيانات.", "error");
+                    showNotification("تعذر الوصول إلى السيرفر. تأكد من صحة البيانات.", "error");
                 }
             } catch (err) {
-                console.error(err);
-                showNotification("تعذر الوصول إلى السيرفر.", "error");
+                console.error("Fetch error:", err);
+                showNotification("حدث خطأ أثناء محاولة الاتصال.", "error");
             } finally {
                 btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> جلب القنوات الآن';
             }
         }
 
-        // دالة البحث في القنوات
         function filterChannels() {
             const searchTerm = document.getElementById('channel-search').value.toLowerCase();
             if (!searchTerm) {
@@ -239,8 +233,7 @@
 
         function renderChannels(dataToRender) {
             const list = document.getElementById('channels-list');
-            list.innerHTML = '';
-            document.getElementById('empty-state').style.display = 'none';
+            list.innerHTML = ''; // This safely clears the list
 
             document.getElementById('channel-count').textContent = `${dataToRender.length} قناة`;
 
@@ -248,7 +241,7 @@
                 list.innerHTML = `
                     <div class="text-center text-gray-500 py-10">
                         <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
-                        <p>لم يتم العثور على قنوات تطابق بحثك.</p>
+                        <p>لا توجد قنوات.</p>
                     </div>`;
                 return;
             }
@@ -319,7 +312,7 @@
                     
                     hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
                         if (data.fatal) {
-                            msg.textContent = "عذراً، البث متوقف مؤقتاً من المصدر.";
+                            msg.textContent = "عذراً، البث متوقف مؤقتاً.";
                             spinner.classList.add('hidden');
                             hlsPlayer.destroy();
                         }
