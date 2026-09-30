@@ -20,7 +20,7 @@
         }
     </script>
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #141414; color: #ffffff; overflow-x: hidden; }
+        body { font-family: 'Cairo', sans-serif; background-color: #141414; color: #ffffff; overflow: hidden; /* Prevent body scroll */ }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #141414; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
@@ -29,10 +29,10 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="bg-dark-bg text-white min-h-screen flex flex-col">
+<body class="bg-dark-bg text-white h-screen flex flex-col"> <!-- h-screen locks full height -->
 
     <!-- شريط التنقل -->
-    <nav class="bg-dark-panel p-4 shadow-md z-10 flex justify-between items-center sticky top-0 border-b border-gray-800">
+    <nav class="bg-dark-panel p-4 shadow-md z-20 flex justify-between items-center border-b border-gray-800 flex-shrink-0">
         <div class="flex items-center gap-2">
             <i class="fas fa-play-circle text-primary text-3xl"></i>
             <h1 class="text-2xl font-black tracking-wider"><span class="text-primary">متعة</span> بلاس</h1>
@@ -48,14 +48,16 @@
     </nav>
 
     <!-- شاشة المشاهدة -->
-    <main id="user-view" class="flex-1 flex flex-col lg:flex-row w-full fade-in" style="display: flex;">
-        <!-- المشغل -->
-        <div class="flex-1 flex flex-col relative bg-black">
+    <main id="user-view" class="flex-1 flex flex-col lg:flex-row w-full fade-in overflow-hidden" style="display: flex;">
+        
+        <!-- المشغل (Fixed Area) -->
+        <div class="flex-1 flex flex-col relative bg-black h-[50vh] lg:h-full flex-shrink-0 lg:flex-shrink">
             <div class="absolute top-4 right-4 z-10 bg-black bg-opacity-60 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> مباشر
             </div>
             
-            <div class="w-full bg-black relative flex items-center justify-center min-h-[40vh] lg:h-[70vh]" id="player-container">
+            <!-- Video Container -->
+            <div class="w-full bg-black relative flex-1 flex items-center justify-center min-h-0" id="player-container">
                 <video id="video-player" class="w-full h-full object-contain" controls></video>
                 
                 <div id="player-overlay" class="absolute inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center hidden p-6 text-center z-20">
@@ -64,7 +66,8 @@
                 </div>
             </div>
             
-            <div class="bg-dark-panel p-4 flex flex-col md:flex-row justify-between items-center border-t border-gray-800 gap-4">
+            <!-- Player Info Bar -->
+            <div class="bg-dark-panel p-4 flex flex-col md:flex-row justify-between items-center border-t border-gray-800 gap-4 flex-shrink-0">
                 <div>
                     <h2 class="text-xl font-bold text-white" id="current-channel-name">اختر قناة للبدء</h2>
                     <p class="text-gray-400 text-sm">البث يعمل الآن عبر Vercel Node.js Proxy</p>
@@ -72,19 +75,33 @@
             </div>
         </div>
 
-        <!-- قائمة القنوات -->
-        <div class="w-full lg:w-80 bg-dark-panel border-r border-gray-800 flex flex-col h-[50vh] lg:h-auto">
-            <div class="p-4 border-b border-gray-800 bg-gray-900 sticky top-0 z-10">
-                <h3 class="font-bold text-lg"><i class="fas fa-list-ul ml-2"></i>قائمة القنوات</h3>
+        <!-- قائمة القنوات (Scrollable Area) -->
+        <div class="w-full lg:w-96 bg-dark-panel border-r border-gray-800 flex flex-col h-[50vh] lg:h-full flex-shrink-0">
+            <!-- Search Bar (Fixed at top of list) -->
+            <div class="p-4 border-b border-gray-800 bg-gray-900 z-10 flex-shrink-0">
+                <div class="relative">
+                    <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="ابحث عن قناة..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+                <div class="flex justify-between items-center mt-3">
+                    <h3 class="font-bold text-sm text-gray-300"><i class="fas fa-list-ul ml-2"></i>قائمة القنوات</h3>
+                    <span id="channel-count" class="text-xs text-primary font-bold bg-gray-800 px-2 py-1 rounded">0 قناة</span>
+                </div>
             </div>
+            
+            <!-- Scrollable List -->
             <div class="flex-1 overflow-y-auto p-2" id="channels-list">
                 <!-- سيتم إضافة القنوات هنا -->
+                <div class="text-center text-gray-500 py-10" id="empty-state">
+                    <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
+                    <p>لا توجد قنوات. يرجى سحب القنوات من لوحة التحكم.</p>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- لوحة التحكم -->
-    <main id="admin-view" class="flex-1 p-4 lg:p-8 bg-dark-bg w-full fade-in" style="display: none;">
+    <!-- لوحة التحكم (Scrollable if needed) -->
+    <main id="admin-view" class="flex-1 p-4 lg:p-8 bg-dark-bg w-full fade-in overflow-y-auto" style="display: none;">
         <div class="max-w-4xl mx-auto space-y-6">
             <div class="bg-dark-panel rounded-lg shadow-lg border border-gray-700 p-6">
                 <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>إعدادات سيرفر Xtream</h2>
@@ -114,6 +131,9 @@
     <script>
         let channelsData = [];
         let hlsPlayer = null;
+        let currentHost = '';
+        let currentUser = '';
+        let currentPass = '';
 
         document.addEventListener('DOMContentLoaded', () => {
             renderTestChannel();
@@ -121,19 +141,21 @@
 
         function renderTestChannel() {
             const list = document.getElementById('channels-list');
+            document.getElementById('empty-state').style.display = 'none';
             list.innerHTML = `
-                <button onclick="playChannel('test')" class="w-full text-right p-3 mb-2 rounded-lg bg-gray-800 border-l-4 border-l-primary flex items-center justify-between">
+                <button onclick="playChannel('test')" class="w-full text-right p-3 mb-2 rounded-lg bg-gray-800 border-l-4 border-l-primary flex items-center justify-between hover:bg-gray-700 transition">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-primary">
+                        <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-primary flex-shrink-0">
                             <i class="fas fa-info-circle"></i>
                         </div>
-                        <div>
-                            <div class="font-bold text-white">قناة تجريبية</div>
+                        <div class="overflow-hidden">
+                            <div class="font-bold text-white truncate">قناة تجريبية</div>
                             <div class="text-xs text-gray-400">للتأكد من عمل المشغل</div>
                         </div>
                     </div>
                 </button>
             `;
+            document.getElementById('channel-count').textContent = `1 قناة`;
         }
 
         function switchView(viewName) {
@@ -158,27 +180,30 @@
         }
 
         async function fetchXtreamChannels() {
-            const host = document.getElementById('xtream-host').value.trim();
-            const user = document.getElementById('xtream-user').value.trim();
-            const pass = document.getElementById('xtream-pass').value.trim();
+            currentHost = document.getElementById('xtream-host').value.trim();
+            currentUser = document.getElementById('xtream-user').value.trim();
+            currentPass = document.getElementById('xtream-pass').value.trim();
             
-            if(!host || !user || !pass) { alert("يرجى ملء جميع البيانات"); return; }
+            if(!currentHost || !currentUser || !currentPass) { alert("يرجى ملء جميع البيانات"); return; }
 
             const btn = document.querySelector('button[onclick="fetchXtreamChannels()"]');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري سحب القنوات عبر السيرفر...';
 
-            const rawApiUrl = `${host}/player_api.php?username=${user}&password=${pass}&action=get_live_streams`;
-            // توجيه الطلب إلى الخادم الوسيط الخاص بنا على Vercel
+            const rawApiUrl = `${currentHost}/player_api.php?username=${currentUser}&password=${currentPass}&action=get_live_streams`;
             const proxiedUrl = `/api/proxy?url=${encodeURIComponent(rawApiUrl)}`;
 
             try {
                 const res = await fetch(proxiedUrl);
                 if (res.ok) {
                     const data = await res.json();
-                    channelsData = Array.isArray(data) ? data.slice(0, 500) : []; // أخذ أول 500 قناة
-                    renderChannels(host, user, pass);
+                    // تخزين البيانات كاملة
+                    channelsData = Array.isArray(data) ? data : []; 
+                    
+                    document.getElementById('channel-search').value = ''; // تصفير البحث
+                    renderChannels(channelsData);
+                    
                     switchView('user');
-                    alert("تم سحب القنوات بنجاح!");
+                    alert(`تم سحب ${channelsData.length} قناة بنجاح!`);
                 } else {
                     alert("فشل الاتصال بالسيرفر. تأكد من صحة البيانات.");
                 }
@@ -190,28 +215,75 @@
             }
         }
 
-        function renderChannels(host, user, pass) {
+        function filterChannels() {
+            const searchTerm = document.getElementById('channel-search').value.toLowerCase();
+            if (!searchTerm) {
+                renderChannels(channelsData); // عرض الكل إذا كان البحث فارغاً
+                return;
+            }
+
+            const filtered = channelsData.filter(ch => 
+                ch.name && ch.name.toLowerCase().includes(searchTerm)
+            );
+            renderChannels(filtered);
+        }
+
+        function renderChannels(dataToRender) {
             const list = document.getElementById('channels-list');
             list.innerHTML = '';
 
-            channelsData.forEach(ch => {
-                const rawPlayUrl = `${host}/live/${user}/${pass}/${ch.stream_id}.m3u8`;
+            document.getElementById('channel-count').textContent = `${dataToRender.length} قناة`;
+
+            if (dataToRender.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center text-gray-500 py-10">
+                        <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
+                        <p>لم يتم العثور على قنوات تطابق بحثك.</p>
+                    </div>`;
+                return;
+            }
+
+            // عرض أول 500 قناة فقط لتجنب ثقل المتصفح، مع إمكانية البحث في الباقي
+            const displayLimit = Math.min(dataToRender.length, 500);
+            
+            for (let i = 0; i < displayLimit; i++) {
+                const ch = dataToRender[i];
+                const rawPlayUrl = `${currentHost}/live/${currentUser}/${currentPass}/${ch.stream_id}.m3u8`;
                 const proxiedPlayUrl = `/api/proxy?url=${encodeURIComponent(rawPlayUrl)}`;
                 
                 const btn = document.createElement('button');
-                btn.className = 'w-full text-right p-3 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center gap-3 border border-transparent focus:border-primary';
-                btn.onclick = () => playStream(proxiedPlayUrl, ch.name || `قناة ${ch.stream_id}`);
+                btn.className = 'channel-item w-full text-right p-3 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center gap-3 border border-transparent focus:outline-none';
+                btn.onclick = (e) => {
+                    // إزالة التحديد من كل القنوات
+                    document.querySelectorAll('.channel-item').forEach(b => b.classList.remove('border-primary', 'border-l-4'));
+                    // إضافة التحديد للقناة الحالية
+                    e.currentTarget.classList.add('border-primary', 'border-l-4');
+                    playStream(proxiedPlayUrl, ch.name || `قناة ${ch.stream_id}`);
+                };
                 
+                // استخدام أيقونة السيرفر إن وجدت، وإلا أيقونة افتراضية
+                const iconHtml = ch.stream_icon ? 
+                    `<img src="${ch.stream_icon}" onerror="this.outerHTML='<i class=\\'fas fa-tv\\'></i>'" class="w-full h-full object-contain rounded-full">` : 
+                    `<i class="fas fa-tv"></i>`;
+
                 btn.innerHTML = `
-                    <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-blue-400">
-                        <i class="fas fa-tv"></i>
+                    <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-blue-400 flex-shrink-0 overflow-hidden p-1">
+                        ${iconHtml}
                     </div>
                     <div class="flex-1 overflow-hidden">
                         <div class="font-bold text-white truncate text-sm">${ch.name}</div>
+                        ${ch.category_name ? `<div class="text-xs text-gray-400 truncate">${ch.category_name}</div>` : ''}
                     </div>
                 `;
                 list.appendChild(btn);
-            });
+            }
+            
+            if (dataToRender.length > 500) {
+                 const msg = document.createElement('div');
+                 msg.className = "text-center text-xs text-gray-500 py-4";
+                 msg.innerText = "تم عرض 500 قناة. استخدم البحث للوصول لباقي القنوات.";
+                 list.appendChild(msg);
+            }
         }
 
         function playChannel(type) {
