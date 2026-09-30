@@ -1,11 +1,10 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>صلاح تي في - Salah TV</title>
     
-    <!-- ربط ملفات تطبيق PWA والشعار الجديد -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#e50914">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/WzSc9061/Photoroom-20260930-153631.png">
@@ -39,12 +38,23 @@
         .toast.success { background-color: #10b981; }
         .toast.error { background-color: #ef4444; }
         
-        /* تفعيل تأثير التركيز للريموت كونترول */
-        .tv-focusable:focus {
+        /* Remote Control Focus effect for TV boxes */
+        .tv-focusable:focus, .tv-focused {
             outline: 3px solid #e50914 !important;
             background-color: #374151 !important;
             transform: scale(1.02);
             transition: all 0.1s ease-in-out;
+            z-index: 10;
+        }
+
+        /* Phone layout simulation mode container */
+        .phone-mockup-mode {
+            max-width: 480px !important;
+            margin: 0 auto !important;
+            height: 100vh !important;
+            border-left: 2px solid #333;
+            border-right: 2px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
     </style>
 </head>
@@ -57,7 +67,11 @@
             <i class="fas fa-play-circle text-primary text-3xl"></i>
             <h1 class="text-2xl font-black tracking-wider"><span class="text-primary">صلاح</span> تي في</h1>
         </div>
-        <div class="flex gap-2">
+        <div class="flex items-center gap-2">
+            <!-- Screen Mode Switcher Icon -->
+            <button onclick="toggleScreenLayoutMode()" class="px-3 py-2 bg-gray-800 text-yellow-400 rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable" id="btn-layout-mode" title="تغيير وضع العرض (هاتف / شاشة كبيرة)">
+                <i class="fas fa-mobile-alt text-lg" id="layout-icon"></i>
+            </button>
             <button onclick="switchView('user')" class="px-4 py-2 bg-gray-800 text-white rounded-md transition-colors font-semibold hover:bg-gray-700 tv-focusable" id="btn-user-view">
                 <i class="fas fa-tv mr-1"></i> <span class="hidden md:inline">المشاهدة</span>
             </button>
@@ -67,77 +81,81 @@
         </div>
     </nav>
 
-    <main id="user-view" class="flex-1 flex flex-col lg:flex-row w-full fade-in overflow-hidden" style="display: flex;">
+    <div id="app-wrapper" class="flex-1 flex flex-col overflow-hidden w-full transition-all duration-300">
         
-        <div class="flex-1 flex flex-col relative bg-black h-[50vh] lg:h-full flex-shrink-0 lg:flex-shrink">
-            <div class="absolute top-4 right-4 z-10 bg-black bg-opacity-60 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> مباشر
-            </div>
+        <main id="user-view" class="flex-1 flex flex-col lg:flex-row w-full fade-in overflow-hidden" style="display: flex;">
             
-            <div class="w-full bg-black relative flex-1 flex items-center justify-center min-h-0" id="player-container">
-                <video id="video-player" class="w-full h-full object-contain" controls></video>
+            <div class="flex-1 flex flex-col relative bg-black h-[50vh] lg:h-full flex-shrink-0 lg:flex-shrink">
+                <div class="absolute top-4 right-4 z-10 bg-black bg-opacity-60 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> مباشر
+                </div>
                 
-                <div id="player-overlay" class="absolute inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center hidden p-6 text-center z-20">
-                    <i class="fas fa-spinner fa-spin text-5xl text-primary mb-4" id="loading-spinner"></i>
-                    <p id="overlay-message" class="text-xl font-bold text-gray-300">جاري تشغيل القناة...</p>
+                <div class="w-full bg-black relative flex-1 flex items-center justify-center min-h-0" id="player-container">
+                    <video id="video-player" class="w-full h-full object-contain" controls></video>
+                    
+                    <div id="player-overlay" class="absolute inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center hidden p-6 text-center z-20">
+                        <i class="fas fa-spinner fa-spin text-5xl text-primary mb-4" id="loading-spinner"></i>
+                        <p id="overlay-message" class="text-xl font-bold text-gray-300">جاري تشغيل القناة...</p>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="bg-dark-panel p-4 flex flex-col md:flex-row justify-between items-center border-t border-gray-800 gap-4 flex-shrink-0">
-                <div>
-                    <h2 class="text-xl font-bold text-white" id="current-channel-name">اختر قناة للبدء</h2>
-                    <p class="text-gray-400 text-sm">مرحباً بك في بث Salah TV</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="w-full lg:w-96 bg-dark-panel border-r border-gray-800 flex flex-col h-[50vh] lg:h-full flex-shrink-0">
-            <div class="p-4 border-b border-gray-800 bg-gray-900 z-10 flex-shrink-0">
-                <div class="relative">
-                    <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="ابحث عن قناة..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors tv-focusable">
-                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                    <h3 class="font-bold text-sm text-gray-300"><i class="fas fa-list-ul ml-2"></i>قائمة القنوات</h3>
-                    <span id="channel-count" class="text-xs text-primary font-bold bg-gray-800 px-2 py-1 rounded">0 قناة</span>
-                </div>
-            </div>
-            
-            <div class="flex-1 overflow-y-auto p-2" id="channels-list">
-                <div class="text-center text-gray-500 py-10" id="empty-state">
-                    <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
-                    <p>لا توجد قنوات. يرجى سحب القنوات من الإعدادات.</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <main id="admin-view" class="flex-1 p-4 lg:p-8 bg-dark-bg w-full fade-in overflow-y-auto" style="display: none;">
-        <div class="max-w-4xl mx-auto space-y-6">
-            <div class="bg-dark-panel rounded-lg shadow-lg border border-gray-700 p-6">
-                <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>بيانات السيرفر</h2>
-                <form id="server-form" class="space-y-4">
+                
+                <div class="bg-dark-panel p-4 flex flex-col md:flex-row justify-between items-center border-t border-gray-800 gap-4 flex-shrink-0">
                     <div>
-                        <label for="xtream-host" class="block text-gray-400 text-sm mb-1">رابط السيرفر (Host)</label>
-                        <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
+                        <h2 class="text-xl font-bold text-white" id="current-channel-name">اختر قناة للبدء</h2>
+                        <p class="text-gray-400 text-sm">مرحباً بك في بث Salah TV</p>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="xtream-user" class="block text-gray-400 text-sm mb-1">اسم المستخدم (Username)</label>
-                            <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
-                        </div>
-                        <div>
-                            <label for="xtream-pass" class="block text-gray-400 text-sm mb-1">كلمة المرور (Password)</label>
-                            <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
-                        </div>
-                    </div>
-                    <button type="button" onclick="fetchXtreamChannels()" class="w-full py-4 mt-4 bg-primary hover:bg-red-700 text-white rounded font-bold shadow-lg transition-colors flex justify-center items-center gap-2 tv-focusable">
-                        <i class="fas fa-cloud-download-alt"></i> جلب القنوات الآن
-                    </button>
-                </form>
+                </div>
             </div>
-        </div>
-    </main>
+
+            <div class="w-full lg:w-96 bg-dark-panel border-r border-gray-800 flex flex-col h-[50vh] lg:h-full flex-shrink-0">
+                <div class="p-4 border-b border-gray-800 bg-gray-900 z-10 flex-shrink-0">
+                    <div class="relative">
+                        <label for="channel-search" class="sr-only">ابحث عن قناة</label>
+                        <input type="text" id="channel-search" onkeyup="filterChannels()" placeholder="ابحث عن قناة..." class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:border-primary focus:outline-none transition-colors tv-focusable">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    <div class="flex justify-between items-center mt-3">
+                        <h3 class="font-bold text-sm text-gray-300"><i class="fas fa-list-ul ml-2"></i>قائمة القنوات</h3>
+                        <span id="channel-count" class="text-xs text-primary font-bold bg-gray-800 px-2 py-1 rounded">0 قناة</span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-2" id="channels-list">
+                    <div class="text-center text-gray-500 py-10" id="empty-state">
+                        <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
+                        <p>لا توجد قنوات. يرجى سحب القنوات من الإعدادات.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <main id="admin-view" class="flex-1 p-4 lg:p-8 bg-dark-bg w-full fade-in overflow-y-auto" style="display: none;">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="bg-dark-panel rounded-lg shadow-lg border border-gray-700 p-6">
+                    <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2"><i class="fas fa-server text-primary ml-2"></i>بيانات السيرفر</h2>
+                    <form id="server-form" class="space-y-4">
+                        <div>
+                            <label for="xtream-host" class="block text-gray-400 text-sm mb-1">رابط السيرفر (Host)</label>
+                            <input type="text" id="xtream-host" value="http://live.lynxiptv.xyz:80" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="xtream-user" class="block text-gray-400 text-sm mb-1">اسم المستخدم (Username)</label>
+                                <input type="text" id="xtream-user" value="Brandt@onama" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
+                            </div>
+                            <div>
+                                <label for="xtream-pass" class="block text-gray-400 text-sm mb-1">كلمة المرور (Password)</label>
+                                <input type="text" id="xtream-pass" value="Z5AtwFfpxw" class="w-full bg-gray-800 text-white border border-gray-600 rounded p-3 focus:border-primary focus:outline-none tv-focusable" dir="ltr">
+                            </div>
+                        </div>
+                        <button type="button" onclick="fetchXtreamChannels()" class="w-full py-4 mt-4 bg-primary hover:bg-red-700 text-white rounded font-bold shadow-lg transition-colors flex justify-center items-center gap-2 tv-focusable">
+                            <i class="fas fa-cloud-download-alt"></i> جلب القنوات الآن
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <script>
         let channelsData = [];
@@ -145,6 +163,7 @@
         let currentHost = '';
         let currentUser = '';
         let currentPass = '';
+        let isPhoneMode = false;
 
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -153,13 +172,27 @@
             toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i> ${message}`;
             
             container.appendChild(toast);
-            
             setTimeout(() => toast.classList.add('show'), 10);
-            
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        }
+
+        function toggleScreenLayoutMode() {
+            isPhoneMode = !isPhoneMode;
+            const wrapper = document.getElementById('app-wrapper');
+            const icon = document.getElementById('layout-icon');
+            
+            if (isPhoneMode) {
+                wrapper.classList.add('phone-mockup-mode');
+                icon.className = "fas fa-tv text-lg";
+                showNotification("تم تفعيل وضع شاشة الهاتف", "success");
+            } else {
+                wrapper.classList.remove('phone-mockup-mode');
+                icon.className = "fas fa-mobile-alt text-lg";
+                showNotification("تم تفعيل وضع الشاشات الكبيرة والتلفزيون", "success");
+            }
         }
 
         function switchView(viewName) {
@@ -244,7 +277,7 @@
                 list.innerHTML = `
                     <div class="text-center text-gray-500 py-10" id="empty-state">
                         <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
-                        <p>لا توجد قنوات.</p>
+                        <p>لا توجد قنوات مطابقة.</p>
                     </div>`;
                 return;
             }
@@ -336,37 +369,36 @@
             }, 500);
         }
 
-        /* نظام تفعيل أسهم الريموت كونترول (D-Pad Navigation) للشاشات الذكية */
+        /* Full D-Pad Remote Control Navigation for TV Boxes and Controllers */
         document.addEventListener('keydown', function(e) {
-            const focusables = Array.from(document.querySelectorAll('.tv-focusable, .channel-item'));
-            const currentIndex = focusables.indexOf(document.activeElement);
+            const focusables = Array.from(document.querySelectorAll('.tv-focusable, .channel-item, button, input'));
+            let currentIndex = focusables.indexOf(document.activeElement);
 
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
                 e.preventDefault();
                 if (focusables.length === 0) return;
 
-                let nextIndex = 0;
-                if (currentIndex !== -1) {
+                if (currentIndex === -1) {
+                    currentIndex = 0;
+                } else {
                     if (e.key === 'ArrowDown') {
-                        nextIndex = (currentIndex + 1) % focusables.length;
-                    } else {
-                        nextIndex = (currentIndex - 1 + focusables.length) % focusables.length;
+                        currentIndex = (currentIndex + 1) % focusables.length;
+                    } else if (e.key === 'ArrowUp') {
+                        currentIndex = (currentIndex - 1 + focusables.length) % focusables.length;
+                    } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                        // Horizontal jump if needed, fallback to linear sequence for smoothness
+                        currentIndex = (e.key === 'ArrowRight') ? (currentIndex + 1) % focusables.length : (currentIndex - 1 + focusables.length) % focusables.length;
                     }
                 }
-                focusables[nextIndex].focus();
-                focusables[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+                focusables[currentIndex].focus();
+                focusables[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         });
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
             });
         }
     </script>
